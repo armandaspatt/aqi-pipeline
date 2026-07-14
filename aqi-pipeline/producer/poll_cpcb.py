@@ -21,44 +21,32 @@ import random
 import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
 import requests
+import yaml
 from confluent_kafka import Producer
 
-TOPIC = os.environ.get("AQI_TOPIC", "cpcb-aqi-raw")
-BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "localhost:19092")
+CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.yaml"
+with open(CONFIG_PATH, encoding="utf-8") as f:
+    CONFIG = yaml.safe_load(f)
+
+TOPIC = os.environ.get("AQI_TOPIC", CONFIG["kafka"]["topic"])
+BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", CONFIG["kafka"]["bootstrap_default"])
 API_KEY = os.environ.get("DATA_GOV_API_KEY", "")
 MOCK = os.environ.get("AQI_MOCK_MODE", "1") == "1"
 
-RESOURCE_URL = (
-    "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
-)
-PER_CITY_LIMIT = 500
+RESOURCE_URL = CONFIG["api"]["resource_url"]
+PER_CITY_LIMIT = CONFIG["api"]["per_city_limit"]
 
 # data.gov.in appears to hang/drop requests carrying the default
 # "python-requests/x.x" User-Agent (confirmed via testing: curl and a
 # browser-like UA both return 200 instantly, default requests UA times out
 # consistently). Sending a browser-like UA fixes it.
-REQUEST_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-    )
-}
+REQUEST_HEADERS = {"User-Agent": CONFIG["api"]["user_agent"]}
 
 # Locked 10-city list (tech hubs + high-AQI metros + home city)
-CITIES = [
-    "Bengaluru",
-    "Hyderabad",
-    "Pune",
-    "Chennai",
-    "Delhi",
-    "Mumbai",
-    "Gurugram",
-    "Noida",
-    "Kolkata",
-    "Bhubaneswar",
-]
+CITIES = CONFIG["cities"]
 
 # Used only in mock mode: rough lat/lon + station names per city
 MOCK_CITY_META = {

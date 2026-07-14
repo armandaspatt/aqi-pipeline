@@ -1,0 +1,26 @@
+# Shared static config for the AQI pipeline.
+# Secrets and per-environment values (API keys, DB DSNs, mock mode) stay as
+# env vars — see .env.example — and are NOT duplicated here.
+
+api:
+  resource_url: "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
+  per_city_limit: 500  # Delhi alone had 315 records at last check; leave headroom
+  # data.gov.in silently hangs on the default python-requests User-Agent;
+  # a browser-like UA is required.
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+
+kafka:
+  topic: "cpcb-aqi-raw"
+  bootstrap_default: "localhost:19092"  # overridden by KAFKA_BOOTSTRAP env var
+
+cities:
+  - Bengaluru
+  - Hyderabad
+  - Pune
+  - Chennai
+  - Delhi
+  - Mumbai
+  - Gurugram
+  - Noida
+  - Kolkata
+  - Bhubaneswar
