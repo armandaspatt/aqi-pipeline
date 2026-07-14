@@ -33,7 +33,7 @@ MOCK = os.environ.get("AQI_MOCK_MODE", "1") == "1"
 RESOURCE_URL = (
     "https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
 )
-PER_CITY_LIMIT = 100
+PER_CITY_LIMIT = 500
 
 # data.gov.in appears to hang/drop requests carrying the default
 # "python-requests/x.x" User-Agent (confirmed via testing: curl and a
