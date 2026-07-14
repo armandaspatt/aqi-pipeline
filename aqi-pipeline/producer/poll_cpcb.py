@@ -35,6 +35,17 @@ RESOURCE_URL = (
 )
 PER_CITY_LIMIT = 100
 
+# data.gov.in appears to hang/drop requests carrying the default
+# "python-requests/x.x" User-Agent (confirmed via testing: curl and a
+# browser-like UA both return 200 instantly, default requests UA times out
+# consistently). Sending a browser-like UA fixes it.
+REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    )
+}
+
 # Locked 10-city list (tech hubs + high-AQI metros + home city)
 CITIES = [
     "Bengaluru",
@@ -74,7 +85,7 @@ def fetch_city(city: str) -> list[dict]:
         "limit": PER_CITY_LIMIT,
         "filters[city]": city,
     }
-    resp = requests.get(RESOURCE_URL, params=params, timeout=30)
+    resp = requests.get(RESOURCE_URL, params=params, headers=REQUEST_HEADERS, timeout=30)
     resp.raise_for_status()
     data = resp.json()
     records = data.get("records", [])
