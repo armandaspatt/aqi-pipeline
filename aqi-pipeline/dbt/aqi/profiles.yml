@@ -1,0 +1,12 @@
+aqi:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('PG_HOST', 'postgres') }}"
+      user: aqi
+      password: aqi
+      dbname: aqi
+      schema: public
+      port: 5432
+      threads: 4

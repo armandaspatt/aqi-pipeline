@@ -1,0 +1,11 @@
+version: 2
+models:
+  - name: mart_city_hourly_aqi
+    columns:
+      - name: aqi
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1000
+  - name: mart_aqi_alerts

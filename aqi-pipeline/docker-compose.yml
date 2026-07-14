@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+  redpanda:
+    image: redpandadata/redpanda:v24.1.7
+    command:
+      - redpanda start
+      - --smp 1
+      - --memory 512M
+      - --overprovisioned
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "19092:19092"   # Kafka API (host)
+      - "9644:9644"     # admin
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 10s
+      retries: 10
+
+  console:
+    image: redpandadata/console:v2.6.0
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: aqi
+      POSTGRES_PASSWORD: aqi
+      POSTGRES_DB: aqi
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aqi"]
+      interval: 5s
+      retries: 10
+
+  airflow:
+    image: apache/airflow:2.9.2-python3.11
+    command: standalone
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://aqi:aqi@postgres/aqi
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      DATA_GOV_API_KEY: ${DATA_GOV_API_KEY:-}
+      AQI_MOCK_MODE: ${AQI_MOCK_MODE:-1}
+      KAFKA_BOOTSTRAP: redpanda:9092
+      PG_DSN: postgresql://aqi:aqi@postgres/aqi
+      _PIP_ADDITIONAL_REQUIREMENTS: "confluent-kafka==2.4.0 psycopg2-binary requests dbt-postgres==1.8.1"
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./producer:/opt/pipeline/producer
+      - ./consumer:/opt/pipeline/consumer
+      - ./dbt:/opt/pipeline/dbt
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+
+  dashboard:
+    image: python:3.11-slim
+    working_dir: /app
+    command: sh -c "pip install -q streamlit pandas psycopg2-binary plotly && streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
+    environment:
+      PG_DSN: postgresql://aqi:aqi@postgres/aqi
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./dashboard:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

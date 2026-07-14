@@ -1,0 +1,10 @@
+version: 2
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: aqi_readings_raw
+        loaded_at_field: ingested_at
+        freshness:
+          warn_after: {count: 2, period: hour}
+          error_after: {count: 4, period: hour}

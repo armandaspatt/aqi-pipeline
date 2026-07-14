@@ -1,0 +1,13 @@
+version: 2
+models:
+  - name: stg_aqi_readings
+    columns:
+      - name: city
+        tests: [not_null]
+      - name: pollutant
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['PM2.5', 'PM10', 'NO2', 'SO2', 'CO', 'OZONE', 'NH3']
+      - name: avg_value
+        tests: [not_null]

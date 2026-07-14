@@ -1,0 +1,6 @@
+.env
+__pycache__/
+dbt/aqi/target/
+dbt/aqi/dbt_packages/
+dbt/aqi/logs/
+logs/
