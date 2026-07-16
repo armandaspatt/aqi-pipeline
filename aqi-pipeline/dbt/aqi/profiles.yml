@@ -3,10 +3,10 @@ aqi:
   outputs:
     dev:
       type: postgres
-      host: "{{ env_var('PG_HOST', 'postgres') }}"
+      host: "{{ env_var('PG_HOST', 'localhost') }}"
       user: aqi
       password: aqi
       dbname: aqi
       schema: public
-      port: 5432
+      port: "{{ env_var('PG_PORT', '5434') | as_number }}"
       threads: 4

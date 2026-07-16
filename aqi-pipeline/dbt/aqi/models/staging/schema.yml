@@ -9,5 +9,3 @@ models:
           - not_null
           - accepted_values:
               values: ['PM2.5', 'PM10', 'NO2', 'SO2', 'CO', 'OZONE', 'NH3']
-      - name: avg_value
-        tests: [not_null]

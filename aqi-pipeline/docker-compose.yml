@@ -35,27 +35,30 @@ services:
       POSTGRES_PASSWORD: aqi
       POSTGRES_DB: aqi
     ports:
-      - "5432:5432"
+      - "5434:5432"   # 5433 is squatted by a native Windows postgres.exe on this host; 5432 is also taken
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - ./scripts/init_airflow_db.sql:/docker-entrypoint-initdb.d/init_airflow_db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U aqi"]
       interval: 5s
       retries: 10
 
   airflow:
-    image: apache/airflow:2.9.2-python3.11
+    build: ./airflow
     command: standalone
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://aqi:aqi@postgres/aqi
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://aqi:aqi@postgres:5432/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       DATA_GOV_API_KEY: ${DATA_GOV_API_KEY:-}
       AQI_MOCK_MODE: ${AQI_MOCK_MODE:-1}
       KAFKA_BOOTSTRAP: redpanda:9092
-      PG_DSN: postgresql://aqi:aqi@postgres/aqi
-      _PIP_ADDITIONAL_REQUIREMENTS: "confluent-kafka==2.4.0 psycopg2-binary requests dbt-postgres==1.8.1"
+      PG_DSN: postgresql://aqi:aqi@postgres:5432/aqi
+      PG_HOST: postgres
+      PG_PORT: "5432"
+      _PIP_ADDITIONAL_REQUIREMENTS: "confluent-kafka==2.4.0 psycopg2-binary requests pyyaml dbt-core==1.8.9 dbt-postgres==1.8.1"
     ports:
       - "8081:8080"
     volumes:
@@ -63,6 +66,7 @@ services:
       - ./producer:/opt/pipeline/producer
       - ./consumer:/opt/pipeline/consumer
       - ./dbt:/opt/pipeline/dbt
+      - ./config.yaml:/opt/pipeline/config.yaml
     depends_on:
       postgres:
         condition: service_healthy
