@@ -12,6 +12,7 @@ with src as (
         nullif(payload->>'max_value','NA')::numeric as max_value,
         nullif(payload->>'latitude','')::numeric    as latitude,
         nullif(payload->>'longitude','')::numeric   as longitude,
+        to_timestamp(payload->>'last_update', 'DD-MM-YYYY HH24:MI:SS') as last_update,
         (payload->>'polled_at')::timestamptz        as polled_at,
         payload->>'source'         as source
     from {{ source('bronze', 'aqi_readings_raw') }}
