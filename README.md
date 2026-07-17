@@ -21,7 +21,7 @@ computes the official CPCB city-level AQI methodology in dbt, and serves it on a
 ## Live dashboard
 
 The Streamlit dashboard reads directly from the dbt marts — KPI tiles, a sorted city ranking, a
-24-hour trend line, and an active-alerts table, refreshed every 5 minutes.
+24-hour city × hour AQI heatmap, and an active-alerts table, refreshed every 5 minutes.
 
 ![Streamlit dashboard](docs/screenshots/dashboard.png)
 

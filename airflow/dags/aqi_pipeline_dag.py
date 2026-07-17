@@ -25,11 +25,21 @@ with DAG(
     tags=["aqi", "cpcb"],
 ) as dag:
 
+    # The bare domain root (https://api.data.gov.in) 404s — only specific resource
+    # paths are served — so a plain curl health check always fails regardless of
+    # connectivity or API key. Hit the actual resource endpoint with limit=1
+    # instead, reusing the producer's own config/header loading so the URL and
+    # User-Agent never drift out of sync with poll_cpcb.py.
     check_api_health = BashOperator(
         task_id="check_api_health",
         bash_command=(
-            'if [ "${AQI_MOCK_MODE:-0}" = "1" ]; then echo mock-mode; '
-            "else curl -sf -o /dev/null --max-time 20 https://api.data.gov.in || exit 1; fi"
+            'if [ "${AQI_MOCK_MODE:-0}" = "1" ]; then echo mock-mode; else '
+            f'cd {PIPELINE}/producer && python -c "'
+            "from poll_cpcb import RESOURCE_URL, REQUEST_HEADERS, API_KEY; "
+            "import requests; "
+            "requests.get(RESOURCE_URL, params={'api-key': API_KEY, 'format': 'json', 'limit': 1}, "
+            "headers=REQUEST_HEADERS, timeout=20).raise_for_status()"
+            '"; fi'
         ),
     )
 
