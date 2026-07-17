@@ -9,7 +9,7 @@ import streamlit as st
 
 PG_DSN = os.environ.get("PG_DSN", "postgresql://aqi:aqi@localhost/aqi")
 
-st.set_page_config(page_title="AQI India", page_icon="🌫️", layout="wide")
+st.set_page_config(page_title="AQI India", layout="wide")
 st.title("🌫️ India Air Quality — Live Pipeline")
 
 CATEGORY_COLORS = {
