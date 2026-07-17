@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌫️ AQI India — Real-Time Air Quality Pipeline
+# AQI India — Real-Time Air Quality Pipeline
 
 **CPCB API → Kafka → Postgres → dbt → Airflow → Streamlit**
 
